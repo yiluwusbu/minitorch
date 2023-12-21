@@ -12,7 +12,7 @@ from typing import Callable, Iterable
 
 def mul(x: float, y: float) -> float:
     "$f(x, y) = x * y$"
-    return x*y
+    return x * y
 
 
 def id(x: float) -> float:
@@ -22,7 +22,7 @@ def id(x: float) -> float:
 
 def add(x: float, y: float) -> float:
     "$f(x, y) = x + y$"
-    return x+y
+    return x + y
 
 
 def neg(x: float) -> float:
@@ -53,7 +53,7 @@ def max(x: float, y: float) -> float:
 
 def is_close(x: float, y: float) -> float:
     "$f(x) = |x - y| < 1e-2$"
-    if abs(x-y) < 1e-2:
+    if abs(x - y) < 1e-2:
         return 1.0
     else:
         return 0.0
@@ -72,7 +72,7 @@ def sigmoid(x: float) -> float:
     for stability.
     """
     if x >= 0:
-        return 1/(1+exp(-x))
+        return 1 / (1 + exp(-x))
     else:
         return exp(x) / (1 + exp(x))
 
@@ -104,17 +104,17 @@ def exp(x: float) -> float:
 
 def log_back(x: float, d: float) -> float:
     r"If $f = log$ as above, compute $d \times f'(x)$"
-    return d * (1/x)
+    return d * (1 / x)
 
 
 def inv(x: float) -> float:
     "$f(x) = 1/x$"
-    return 1/x
+    return 1 / x
 
 
 def inv_back(x: float, d: float) -> float:
     r"If $f(x) = 1/x$ compute $d \times f'(x)$"
-    return -d / (x*x)
+    return -d / (x * x)
 
 
 def relu_back(x: float, d: float) -> float:
@@ -143,8 +143,10 @@ def map(fn: Callable[[float], float]) -> Callable[[Iterable[float]], Iterable[fl
          A function that takes a list, applies `fn` to each element, and returns a
          new list
     """
+
     def apply(ls: Iterable[float]) -> Iterable[float]:
-        return [ fn(x) for x in ls ]
+        return [fn(x) for x in ls]
+
     return apply
 
 
@@ -170,9 +172,10 @@ def zipWith(
          applying fn(x, y) on each pair of elements.
 
     """
+
     def apply(ls1: Iterable[float], ls2: Iterable[float]) -> Iterable[float]:
-        return [fn(x,y) for (x,y) in zip(ls1, ls2)]
-    
+        return [fn(x, y) for (x, y) in zip(ls1, ls2)]
+
     return apply
 
 
@@ -197,13 +200,15 @@ def reduce(
          $x_1 \ldots x_n$ and computes the reduction :math:`fn(x_3, fn(x_2,
          fn(x_1, x_0)))`
     """
+
     def apply(ls: Iterable[float]) -> float:
         res: float = start
         for x in ls:
-           res = fn(x, res)
-        return res 
-    
+            res = fn(x, res)
+        return res
+
     return apply
+
 
 def sum(ls: Iterable[float]) -> float:
     "Sum up a list using `reduce` and `add`."

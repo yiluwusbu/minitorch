@@ -52,7 +52,7 @@ class Module:
         params = list(self._parameters.items())
         for m_name, m in self._modules.items():
             sub_params = m.named_parameters()
-            sub_params = [ (m_name+"."+nm, v) for (nm, v) in sub_params]
+            sub_params = [(m_name + "." + nm, v) for (nm, v) in sub_params]
             params += sub_params
 
         return params
