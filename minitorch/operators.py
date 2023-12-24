@@ -27,7 +27,7 @@ def add(x: float, y: float) -> float:
 
 def neg(x: float) -> float:
     "$f(x) = -x$"
-    return -x
+    return -1.0 * x
 
 
 def lt(x: float, y: float) -> float:
@@ -86,7 +86,7 @@ def relu(x: float) -> float:
     if x >= 0:
         return x
     else:
-        return 0
+        return 0.0
 
 
 EPS = 1e-6

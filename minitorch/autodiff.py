@@ -22,8 +22,11 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    # TODO: Implement for Task 1.1.
-    raise NotImplementedError("Need to implement for Task 1.1")
+    f_x = f(*vals)
+    vals_h = list(vals)
+    vals_h[arg] += epsilon
+    f_xh = f(*vals_h)
+    return (f_xh - f_x) / epsilon
 
 
 variable_count = 1
@@ -61,8 +64,35 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    # run bfs to collect the out degrees of all nodes
+    out_degrees = dict()
+    work_list = [variable]
+    while len(work_list) > 0:
+        var = work_list.pop(0)
+        for p in var.parents:
+            if p.is_constant():
+                continue
+            if p.unique_id not in out_degrees:
+                out_degrees[p.unique_id] = 1
+                work_list.append(p)
+            else:
+                out_degrees[p.unique_id] += 1
+
+    # topological sort
+    work_list = [variable]
+    sorted_list = []
+    while len(work_list) > 0:
+        var = work_list.pop(0)
+        if not var.is_constant():
+            sorted_list.append(var)
+        for p in var.parents:
+            if p.is_constant():
+                continue
+            out_degrees[p.unique_id] -= 1
+            if out_degrees[p.unique_id] == 0:
+                work_list.append(p)
+
+    return sorted_list
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -76,8 +106,21 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    var_derivs = dict()
+    var_derivs[variable.unique_id] = deriv
+    topo_order_list = topological_sort(variable)
+    for var in topo_order_list:
+        d_var = var_derivs[var.unique_id]
+        # check whether it is a leaf node
+        if var.is_leaf():
+            var.accumulate_derivative(d_var)
+        else:
+            derivs = var.chain_rule(d_var)
+            for input, d in derivs:
+                id = input.unique_id
+                if id not in var_derivs:
+                    var_derivs[id] = 0
+                var_derivs[id] += d
 
 
 @dataclass
