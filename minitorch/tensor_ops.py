@@ -264,7 +264,8 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        out_sz = int(np.prod(out_shape, 0))
+        out_sz = int(operators.prod(out_shape))
+
         for i in range(out_sz):
             out_idx = np.zeros(len(out_shape), dtype=np.int32)
             to_index(i, out_shape, out_idx)
@@ -316,7 +317,7 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        out_sz = int(np.prod(out_shape, 0))
+        out_sz = int(operators.prod(out_shape))
         for i in range(out_sz):
             out_idx = np.zeros(len(out_shape), dtype=np.int32)
             to_index(i, out_shape, out_idx)
@@ -358,7 +359,7 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        out_sz = np.prod(out_shape, 0)
+        out_sz = int(operators.prod(out_shape))
         reduce_dim_sz = a_shape[reduce_dim]
         for i in range(out_sz):
             out_index = np.zeros(len(out_shape), dtype=np.int32)
