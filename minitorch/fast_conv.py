@@ -79,12 +79,35 @@ def _tensor_conv1d(
     )
     s1 = input_strides
     s2 = weight_strides
+    s0 = out_strides
 
-    # TODO: Implement for Task 4.1.
-    raise NotImplementedError("Need to implement for Task 4.1")
+    for b in prange(batch):
+        for i in range(out_width):
+            i_start = i if not reverse else width - 1 - i
+            oi = i if not reverse else out_width - 1 - i
+            for oc in range(out_channels):
+                tmp = 0
+                for c in range(in_channels):
+                    for j in range(kw):
+                        v = 0
+                        if not reverse:
+                            wi = j
+                            ii = i_start + j
+                        else:
+                            wi = kw - 1 - j
+                            ii = i_start - j
+                        if ii >= 0 and ii < width:
+                            ipos = b * s1[0] + c * s1[1] + ii * s1[2]
+                            v = input[ipos]
+                        wpos = oc * s2[0] + c * s2[1] + wi * s2[2]
+                        tmp += weight[wpos] * v
+
+                opos = b * s0[0] + oc * s0[1] + oi * s0[2]
+                out[opos] = tmp
 
 
 tensor_conv1d = njit(parallel=True)(_tensor_conv1d)
+# tensor_conv1d = _tensor_conv1d
 
 
 class Conv1dFun(Function):
@@ -119,8 +142,8 @@ class Conv1dFun(Function):
         batch, in_channels, w = input.shape
         out_channels, in_channels, kw = weight.shape
         grad_weight = grad_output.zeros((in_channels, out_channels, kw))
-        new_input = input.permute(1, 0, 2)
-        new_grad_output = grad_output.permute(1, 0, 2)
+        new_input = input.permute(1, 0, 2)  # (in_channels, batch, w)
+        new_grad_output = grad_output.permute(1, 0, 2)  # (out_channels, batch, w)
         tensor_conv1d(
             *grad_weight.tuple(),
             grad_weight.size,
@@ -131,11 +154,11 @@ class Conv1dFun(Function):
         grad_weight = grad_weight.permute(1, 0, 2)
 
         grad_input = input.zeros((batch, in_channels, w))
-        new_weight = weight.permute(1, 0, 2)
+        new_weight = weight.permute(1, 0, 2)  # (in_channels, out_channels, kw)
         tensor_conv1d(
             *grad_input.tuple(),
             grad_input.size,
-            *grad_output.tuple(),
+            *grad_output.tuple(),  # (batch, out_channels, kw)
             *new_weight.tuple(),
             True,
         )
@@ -190,7 +213,7 @@ def _tensor_conv2d(
         weight_strides (Strides): strides for `input` tensor.
         reverse (bool): anchor weight at top-left or bottom-right
     """
-    batch_, out_channels, _, _ = out_shape
+    batch_, out_channels, out_height, out_width = out_shape
     batch, in_channels, height, width = input_shape
     out_channels_, in_channels_, kh, kw = weight_shape
 
@@ -202,15 +225,53 @@ def _tensor_conv2d(
 
     s1 = input_strides
     s2 = weight_strides
+    s3 = out_strides
     # inners
     s10, s11, s12, s13 = s1[0], s1[1], s1[2], s1[3]
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
+    s30, s31, s32, s33 = s3[0], s3[1], s3[2], s3[3]
 
-    # TODO: Implement for Task 4.2.
-    raise NotImplementedError("Need to implement for Task 4.2")
+    for b in prange(batch):
+        for i in prange(out_height):
+            for j in prange(out_width):
+                i_start = i if not reverse else height - 1 - i
+                j_start = j if not reverse else width - 1 - j
+                oi = i if not reverse else out_height - 1 - i
+                oj = j if not reverse else out_width - 1 - j
+                for oc in prange(out_channels):
+                    tmp = 0
+                    for c in range(in_channels):
+                        for ki in range(kh):
+                            if not reverse:
+                                wi = ki
+                                ii = i_start + ki
+                            else:
+                                wi = kh - 1 - ki
+                                ii = i_start - ki
+
+                            for kj in range(kw):
+                                if not reverse:
+                                    wj = kj
+                                    jj = j_start + kj
+                                else:
+                                    wj = kw - 1 - kj
+                                    jj = j_start - kj
+
+                                v = 0
+
+                                if ii >= 0 and ii < height and jj >= 0 and jj < width:
+                                    ipos = b * s10 + c * s11 + ii * s12 + jj * s13
+                                    v = input[ipos]
+
+                                wpos = oc * s20 + c * s21 + wi * s22 + wj * s23
+                                tmp += weight[wpos] * v
+
+                    opos = b * s30 + oc * s31 + oi * s32 + oj * s33
+                    out[opos] = tmp
 
 
 tensor_conv2d = njit(parallel=True, fastmath=True)(_tensor_conv2d)
+# tensor_conv2d = _tensor_conv2d
 
 
 class Conv2dFun(Function):

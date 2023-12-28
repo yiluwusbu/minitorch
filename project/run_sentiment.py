@@ -162,6 +162,9 @@ class SentenceSentimentTrain:
             for batch_num, example_num in enumerate(
                 range(0, n_training_samples, batch_size)
             ):
+                print(
+                    f"running batch {batch_num}/{n_training_samples}, batchsize = {batch_size}"
+                )
                 y = minitorch.tensor(
                     y_train[example_num : example_num + batch_size], backend=BACKEND
                 )
